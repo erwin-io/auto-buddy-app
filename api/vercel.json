@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/makes",
+            "destination": "/api/makes"
+        }
+    ]
+}
