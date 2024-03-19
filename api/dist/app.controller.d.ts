@@ -1,5 +1,4 @@
 import { HttpService } from "@nestjs/axios";
-import fetch from 'node-fetch';
 export declare class AppController {
     private readonly httpService;
     constructor(httpService: HttpService);
@@ -25,8 +24,17 @@ export declare class AppController {
         success: boolean;
         data?: undefined;
     }>;
-    getModel(make: any, model: any): Promise<{
-        data: fetch.Response;
+    getCarModel(make: any): Promise<{
+        data: any[];
+        success: boolean;
+        message?: undefined;
+    } | {
+        message: any;
+        success: boolean;
+        data?: undefined;
+    }>;
+    getMotorcycleModel(make: any): Promise<{
+        data: any[];
         success: boolean;
         message?: undefined;
     } | {

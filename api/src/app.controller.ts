@@ -111,25 +111,94 @@ export class AppController {
     }
   }
 
-  @Get("/model")
+  @Get("/model/car")
   @ApiQuery({ name: "make", required: true, type: String })
-  @ApiQuery({ name: "model", required: false, type: String })
   //   @UseGuards(JwtAuthGuard)
-  async getModel(
-    @Query("make") make,
-    @Query("make") model) {
+  async getCarModel(
+    @Query("make") make) {
     try {
       const response = await fetch(
-        `https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/motorcycle?keywords=${make ? make : ''}&filterType=vehicle_name&match=wildcard`, {
+        `https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/car?keywords=${make ? make : ''}&filterType=make_slug&match=wildcard`, {
         method: 'get',
         headers: { 
           'Content-Type': 'application/json' ,
           'Origin': 'https://www.topgear.com.ph' 
         },
       });
+      const data = await response.json();
+      let results = [];
+      if(data && data.hits) {
+        results = data.hits.hits.filter(x=>x._source.status === 1).map(x=> {
+          return {
+            id: x._source.id,
+            vehicle_name: x._source.vehicle_name,
+            make_name: x._source.make_name,
+            make_logo: x._source.make_logo,
+            make_slug: x._source.make_slug,
+            model_name: x._source.model_name,
+            model_slug: x._source.model_slug,
+            year: x._source.year,
+            date_published: x._source.date_published,
+            image: x._source.image,
+            description: x._source.description,
+            price: x._source.price,
+            category: x._source.category,
+            transmission: x._source.transmission,
+          }
+        })
+      }
 
       return {
-        data: response,
+        data: results,
+        success: true,
+      }
+    } catch (e) {
+      return {
+        message: e,
+        success: false,
+      };
+    }
+  }
+
+  @Get("/model/motorcycle")
+  @ApiQuery({ name: "make", required: true, type: String })
+  //   @UseGuards(JwtAuthGuard)
+  async getMotorcycleModel(
+    @Query("make") make) {
+    try {
+      const response = await fetch(
+        `https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/motorcycle?keywords=${make ? make : ''}&filterType=make_slug&match=wildcard`, {
+        method: 'get',
+        headers: { 
+          'Content-Type': 'application/json' ,
+          'Origin': 'https://www.topgear.com.ph' 
+        },
+      });
+      const data = await response.json();
+      let results = [];
+      if(data && data.hits) {
+        results = data.hits.hits.filter(x=>x._source.status === 1).map(x=> {
+          return {
+            id: x._source.id,
+            vehicle_name: x._source.vehicle_name,
+            make_name: x._source.make_name,
+            make_logo: x._source.make_logo,
+            make_slug: x._source.make_slug,
+            model_name: x._source.model_name,
+            model_slug: x._source.model_slug,
+            year: x._source.year,
+            date_published: x._source.date_published,
+            image: x._source.image,
+            description: x._source.description,
+            price: x._source.price,
+            category: x._source.category,
+            transmission: x._source.transmission,
+          }
+        })
+      }
+
+      return {
+        data: results,
         success: true,
       }
     } catch (e) {

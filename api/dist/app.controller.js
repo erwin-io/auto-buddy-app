@@ -93,17 +93,82 @@ let AppController = class AppController {
             };
         }
     }
-    async getModel(make, model) {
+    async getCarModel(make) {
         try {
-            const response = await (0, node_fetch_1.default)(`https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/motorcycle?keywords=${make ? make : ''}&filterType=vehicle_name&match=wildcard`, {
+            const response = await (0, node_fetch_1.default)(`https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/car?keywords=${make ? make : ''}&filterType=make_slug&match=wildcard`, {
                 method: 'get',
                 headers: {
                     'Content-Type': 'application/json',
                     'Origin': 'https://www.topgear.com.ph'
                 },
             });
+            const data = await response.json();
+            let results = [];
+            if (data && data.hits) {
+                results = data.hits.hits.filter(x => x._source.status === 1).map(x => {
+                    return {
+                        id: x._source.id,
+                        vehicle_name: x._source.vehicle_name,
+                        make_name: x._source.make_name,
+                        make_logo: x._source.make_logo,
+                        make_slug: x._source.make_slug,
+                        model_name: x._source.model_name,
+                        model_slug: x._source.model_slug,
+                        year: x._source.year,
+                        date_published: x._source.date_published,
+                        image: x._source.image,
+                        description: x._source.description,
+                        price: x._source.price,
+                        category: x._source.category,
+                        transmission: x._source.transmission,
+                    };
+                });
+            }
             return {
-                data: response,
+                data: results,
+                success: true,
+            };
+        }
+        catch (e) {
+            return {
+                message: e,
+                success: false,
+            };
+        }
+    }
+    async getMotorcycleModel(make) {
+        try {
+            const response = await (0, node_fetch_1.default)(`https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/search-vehicles/motorcycle?keywords=${make ? make : ''}&filterType=make_slug&match=wildcard`, {
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://www.topgear.com.ph'
+                },
+            });
+            const data = await response.json();
+            let results = [];
+            if (data && data.hits) {
+                results = data.hits.hits.filter(x => x._source.status === 1).map(x => {
+                    return {
+                        id: x._source.id,
+                        vehicle_name: x._source.vehicle_name,
+                        make_name: x._source.make_name,
+                        make_logo: x._source.make_logo,
+                        make_slug: x._source.make_slug,
+                        model_name: x._source.model_name,
+                        model_slug: x._source.model_slug,
+                        year: x._source.year,
+                        date_published: x._source.date_published,
+                        image: x._source.image,
+                        description: x._source.description,
+                        price: x._source.price,
+                        category: x._source.category,
+                        transmission: x._source.transmission,
+                    };
+                });
+            }
+            return {
+                data: results,
                 success: true,
             };
         }
@@ -136,15 +201,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppController.prototype, "getAllMotorcycleMakes", null);
 __decorate([
-    (0, common_1.Get)("/model"),
+    (0, common_1.Get)("/model/car"),
     (0, swagger_1.ApiQuery)({ name: "make", required: true, type: String }),
-    (0, swagger_1.ApiQuery)({ name: "model", required: false, type: String }),
     __param(0, (0, common_2.Query)("make")),
-    __param(1, (0, common_2.Query)("make")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "getModel", null);
+], AppController.prototype, "getCarModel", null);
+__decorate([
+    (0, common_1.Get)("/model/motorcycle"),
+    (0, swagger_1.ApiQuery)({ name: "make", required: true, type: String }),
+    __param(0, (0, common_2.Query)("make")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getMotorcycleModel", null);
 AppController = __decorate([
     (0, swagger_1.ApiTags)("api"),
     (0, common_1.Controller)("api"),
