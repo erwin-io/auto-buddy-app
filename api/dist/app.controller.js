@@ -21,11 +21,35 @@ const swagger_1 = require("@nestjs/swagger");
 const axios_1 = require("@nestjs/axios");
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const common_2 = require("@nestjs/common");
+const sharp_1 = __importDefault(require("sharp"));
+const FormData = require('form-data');
 let AppController = class AppController {
     constructor(httpService) {
         this.httpService = httpService;
     }
-    async getMakes(type) {
+    async getRemoveBackground(url) {
+        try {
+            const imageResponse = await this.httpService.get(url, {
+                responseType: "arraybuffer",
+            }).toPromise();
+            const img = await (0, sharp_1.default)(imageResponse.data).toFormat('png').toBuffer();
+            const formData = new FormData();
+            formData.append('file', img, 'image.png');
+            const config = {
+                headers: Object.assign({ 'Origin': 'https://www.switchboard.ai' }, formData.getHeaders()),
+            };
+            const result = await this.httpService.post('https://www.switchboard.ai/marketing/background', formData, Object.assign(Object.assign({}, config), { responseType: "arraybuffer" })).toPromise();
+            const base64 = `data:image/png;base64,${Buffer.from(await (0, sharp_1.default)(result.data).toBuffer()).toString('base64')}`;
+            return base64;
+        }
+        catch (e) {
+            return {
+                message: e,
+                success: false,
+            };
+        }
+    }
+    async getAllCarMakes() {
         try {
             const response = await (0, node_fetch_1.default)("https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/makes/", {
                 method: 'get',
@@ -35,12 +59,32 @@ let AppController = class AppController {
                 },
             });
             const data = await response.json();
-            if (type === "car" || type === "motorcycle") {
-                return data.filter(x => x.vehicle_type === type);
-            }
-            else {
-                return data;
-            }
+            return {
+                data: data.filter(x => x.vehicle_type === "car" && !x.name.toLowerCase().includes("test")),
+                success: true,
+            };
+        }
+        catch (e) {
+            return {
+                message: e,
+                success: false,
+            };
+        }
+    }
+    async getAllMotorcycleMakes() {
+        try {
+            const response = await (0, node_fetch_1.default)("https://apisearch.topgear.com.ph/topgear/v1/buyers-guide/makes/", {
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://www.topgear.com.ph'
+                },
+            });
+            const data = await response.json();
+            return {
+                data: data.filter(x => x.vehicle_type === "motorcycle"),
+                success: true,
+            };
         }
         catch (e) {
             return {
@@ -58,7 +102,10 @@ let AppController = class AppController {
                     'Origin': 'https://www.topgear.com.ph'
                 },
             });
-            return await response.json();
+            return {
+                data: response,
+                success: true,
+            };
         }
         catch (e) {
             return {
@@ -69,13 +116,25 @@ let AppController = class AppController {
     }
 };
 __decorate([
-    (0, common_1.Get)("/makes"),
-    (0, swagger_1.ApiQuery)({ name: "type", required: false, type: String }),
-    __param(0, (0, common_2.Query)("type")),
+    (0, common_1.Get)("/getRemoveBackground"),
+    (0, swagger_1.ApiQuery)({ name: "url", required: true, type: String }),
+    __param(0, (0, common_2.Query)("url")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "getMakes", null);
+], AppController.prototype, "getRemoveBackground", null);
+__decorate([
+    (0, common_1.Get)("/makes/car"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getAllCarMakes", null);
+__decorate([
+    (0, common_1.Get)("/makes/motorcycle"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getAllMotorcycleMakes", null);
 __decorate([
     (0, common_1.Get)("/model"),
     (0, swagger_1.ApiQuery)({ name: "make", required: true, type: String }),
